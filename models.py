@@ -166,7 +166,8 @@ class ROOK(Piece):
                 if target is None:
                     moves.add((new_row, new_colum))
                 else:
-                    moves.add((new_row, new_colum))
+                    if self.color == target.color:
+                        moves.add((new_row, new_colum))
         return moves
 
 
@@ -193,7 +194,8 @@ class BISHOP(Piece):
                 if target is None:
                     moves.add((new_row, new_colum))
                 else:
-                    moves.add((new_row, new_colum))
+                    if self.color == target.color:
+                        moves.add((new_row, new_colum))
         return moves
 
 
@@ -202,93 +204,96 @@ class BISHOP(Piece):
 
 
     # ==============================================================  Домашняя работа
-    class KNIGHT(Piece):
-        def __init__(self, color):
-            super().__init__(color, PieceType.KNIGHT)
+class KNIGHT(Piece):
+    def __init__(self, color):
+        super().__init__(color, PieceType.KNIGHT)
 
-        def get_possible_moves(self, row, colum, board):
-            """
-            :param row: текущий ряд фигуры
-            :param colum: текущая колонка фигуры
-            :param board: доска
-            :return moves: вовращает множество допустимых ходов
-            """
-            moves = set()
-            directions = [(-2, -1), (-2, 1), (-1, -2), (-1, 2), (1, -2),  (1, 2), (2, -1),  (2, 1)]
-            for dr, dc in directions:
-                for step in range(8):
-                    new_row, new_colum = row + dr, colum + dc * step
-                    if not board.is_valid_position(new_row, new_colum):
-                        break
-                    target = board.get_piece(new_row, new_colum)
-                    if target is None:
+    def get_possible_moves(self, row, colum, board):
+        """
+        :param row: текущий ряд фигуры
+        :param colum: текущая колонка фигуры
+        :param board: доска
+        :return moves: вовращает множество допустимых ходов
+        """
+        moves = set()
+        directions = [(-2, -1), (-2, 1), (-1, -2), (-1, 2), (1, -2),  (1, 2), (2, -1),  (2, 1)]
+        for dr, dc in directions:
+            new_row, new_colum = row + dr, colum + dc
+            if not board.is_valid_position(new_row, new_colum):
+                continue
+            target = board.get_piece(new_row, new_colum)
+            if target is None:
+                moves.add((new_row, new_colum))
+            else:
+                if self.color != target.color:
+                    moves.add((new_row, new_colum))
+        return moves
+
+# ==============================================================
+class QUEEN(Piece):
+    def __init__(self, color):
+        super().__init__(color, PieceType.QUEEN)
+
+    def get_possible_moves(self, row, colum, board):
+        """
+        :param row: текущий ряд фигуры
+        :param colum: текущая колонка фигуры
+        :param board: доска
+        return moves: вовращает множество допустимых ходов
+        """
+        moves = set()
+        directions = [(1, 1), (-1, -1), (-1, 1), (1, -1), (1, 0), (-1, 0), (0, 1), (0, -1)]
+        for dr, dc in directions:
+            for step in range(8):
+                new_row, new_colum = row + dr * step, colum + dc * step
+                if not board.is_valid_position(new_row, new_colum):
+                    break
+                target = board.get_piece(new_row, new_colum)
+                if target is None:
+                    moves.add((new_row, new_colum))
+                else:
+                    if self.color != target.color:
                         moves.add((new_row, new_colum))
-                    else:
-                        moves.add((new_row, new_colum))
+                    break
             return moves
 
-        # ==============================================================
-        class QUEEN(Piece):
-            def __init__(self, color):
-                super().__init__(color, PieceType.QUEEN)
+# ==============================================================
+class KING(Piece):
+    def __init__(self, color):
+        super().__init__(color, PieceType.KING)
 
-            def get_possible_moves(self, row, colum, board):
-                """
-                :param row: текущий ряд фигуры
-                :param colum: текущая колонка фигуры
-                :param board: доска
-                :return moves: вовращает множество допустимых ходов
-                """
-                moves = set()
-                directions = [(1, 1), (-1, -1), (-1, 1), (1, -1), (1, 0), (-1, 0), (0, 1), (0, -1)]
-                for dr, dc in directions:
-                    for step in range(8):
-                        new_row, new_colum = row + dr, colum + dc * step
-                        if not board.is_valid_position(new_row, new_colum):
-                            break
-                        target = board.get_piece(new_row, new_colum)
-                        if target is None:
-                            moves.add((new_row, new_colum))
-                        else:
-                            moves.add((new_row, new_colum))
-                return moves
-
-        # ==============================================================
-        class KING(Piece):
-            def __init__(self, color):
-                super().__init__(color, PieceType.KING)
-
-            def get_possible_moves(self, row, colum, board):
-                """
-                :param row: текущий ряд фигуры
-                :param colum: текущая колонка фигуры
-                :param board: доска
-                :return moves: вовращает множество допустимых ходов
-                """
-                moves = set()
-                directions = [(1, 1), (-1, -1), (-1, 1), (1, -1), (1, 0), (-1, 0), (0, 1), (0, -1)]
-                for dr, dc in directions:
-                    for step in range(8):
-                        new_row, new_colum = row + dr, colum + dc * step
-                        if not board.is_valid_position(new_row, new_colum):
-                            break
-                        target = board.get_piece(new_row, new_colum)
-                        if target is None:
-                            moves.add((new_row, new_colum))
-                        else:
-                            moves.add((new_row, new_colum))
-                return moves
+    def get_possible_moves(self, row, colum, board):
+        """
+        :param row: текущий ряд фигуры
+        :enemy_color: цвет противника 
+        :param colum: текущая колонка фигуры
+        :param board: доска
+        :return moves: вовращает множество допустимых ходов
+        """
+        moves = set()
+        directions = [(1, 1), (-1, -1), (-1, 1), (1, -1), (1, 0), (-1, 0), (0, 1), (0, -1)]
+        for dr, dc in directions:
+            new_row, new_colum = row + dr, colum + dc
+            if not board.is_valid_position(new_row, new_colum):
+                break
+            target = board.get_piece(new_row, new_colum)
+            if target is None:
+                moves.add((new_row, new_colum))
+            else:
+                if self.color != target.color:
+                    moves.add((new_row, new_colum))
+        return moves
 
 
 #===========================================
-    def check(self, color, row, colum, board):
+    def check(self, row, colum, board, enemy_color):
         mate = 0
-        if color != self.color.KING:
+        if enemy_color != self.color:
             target = board.get_piece.KING(row, colum)
             print(self.color.KING, target("шах"))
             if self.color.KING == target:
                 mate += 1
-            print("победели" color != self.color.KING)
+            print("победили", enemy_color)
 #============================================
     def plaeer(self, color, row, colum, board):
         colum = int("введите номер колонки")
