@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 from enum import Enum
+from dataclasses import dataclass
+from typing import Dict
 """
 файл доски для шахмат
 размер доски 8 x 8, по горизонтали цифры от 1 до 8, по вертикали буквы от a до h
@@ -17,6 +19,14 @@ cd2 = ChessDesk()
 print(cd1.name)
 print(cd2.name)
 #====================================
+@dataclass(frozen=True)
+class Position:
+    row: int
+    col: int
+
+    def __add__(self, other):
+        dr, dc = other
+        return Position(self.row+dr, self.col+dc)
 
 class Color(Enum):
     WHITE = "white"
@@ -47,7 +57,7 @@ class PieceType(Enum):
     QUEEN = "королева"
 
 
-class Piece(ABC):
+class Piece:
     def __init__(self, color, type):
         self.color = color
         self.type = type
@@ -118,33 +128,7 @@ class Pawn(Piece):
                 moves.add((new_row, colum_right))
         return moves
 
-
-class Board:
-    def __init__(self):
-        self.width = 8
-        self.height = 8
-        self.board = [[None for i in range(self.width)] for j in range(self.height)]
-        self.setup_board()
-
-
-    def is_valid_position(self, row, colum):
-        if row < 8 and row >= 0 and colum < 8 and colum >= 0:
-            return True
-        return False
-
-    def setup_board(self):
-        pass
-
-    def get_piece(self, row, colum):
-        if self.is_valid_position(row, colum):
-            return self.board[row][colum]
-        return None
-
-    def set_piece(self, row, colum, piece):
-        pass
-
-#============================================
-class ROOK(Piece):
+class Rook(Piece):
     def __init__(self, color):
         super().__init__(color, PieceType.ROOK)
 
@@ -172,7 +156,7 @@ class ROOK(Piece):
 
 
 #==============================================================
-class BISHOP(Piece):
+class Bishop(Piece):
     def __init__(self, color):
         super().__init__(color, PieceType.BISHOP)
 
@@ -204,7 +188,7 @@ class BISHOP(Piece):
 
 
     # ==============================================================  Домашняя работа
-class KNIGHT(Piece):
+class Knight(Piece):
     def __init__(self, color):
         super().__init__(color, PieceType.KNIGHT)
 
@@ -230,7 +214,7 @@ class KNIGHT(Piece):
         return moves
 
 # ==============================================================
-class QUEEN(Piece):
+class Queen(Piece):
     def __init__(self, color):
         super().__init__(color, PieceType.QUEEN)
 
@@ -258,14 +242,14 @@ class QUEEN(Piece):
             return moves
 
 # ==============================================================
-class KING(Piece):
+class King(Piece):
     def __init__(self, color):
         super().__init__(color, PieceType.KING)
 
     def get_possible_moves(self, row, colum, board):
         """
         :param row: текущий ряд фигуры
-        :enemy_color: цвет противника 
+        :enemy_color: цвет противника
         :param colum: текущая колонка фигуры
         :param board: доска
         :return moves: вовращает множество допустимых ходов
@@ -283,8 +267,6 @@ class KING(Piece):
                 if self.color != target.color:
                     moves.add((new_row, new_colum))
         return moves
-
-
 #===========================================
     def check(self, row, colum, board, enemy_color):
         mate = 0
@@ -298,6 +280,47 @@ class KING(Piece):
     def plaeer(self, color, row, colum, board):
         colum = int("введите номер колонки")
         row = int("введите номер ряда")
+
+class Board:
+    def __init__(self):
+        self.width = 8
+        self.height = 8
+        self.pieces: Dict[Position, Piece] = {}
+        self.board = [[None for i in range(self.width)] for j in range(self.height)]
+        self.setup_board()
+
+
+
+    def is_valid_position(self, row, colum):
+        if row < 8 and row >= 0 and colum < 8 and colum >= 0:
+            return True
+        return False
+
+
+    def setup_board(self):
+        for col in range(self.width):
+            self.pieces[Position(1, col)] = Pawn(Color.BLACK)
+            self.pieces[Position(6, col)] = Pawn(Color.WHITE)
+
+        back_row = [Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook ]
+        for col, piece in enumerate(back_row):
+            self.pieces[Position(0, col)] = piece(Color.BLACK)
+            self.pieces[Position(7, col)] = piece(Color.WHITE)
+
+
+
+    def get_piece(self, position):
+        if self.is_valid_position(position):
+            return self.pieces[position]
+        return None
+
+    def set_piece(self, position, piece):
+        if piece is None:
+            self.pieces.pop(position, None)
+        else:
+            self.pieces[position] = piece
+
+
 
 
 
