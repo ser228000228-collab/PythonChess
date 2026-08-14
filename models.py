@@ -96,10 +96,9 @@ class Pawn(Piece):
     def __init__(self, color):
         super().__init__(color, PieceType.PAWN)
 
-    def get_possible_moves(self, row, colum, board):
+    def get_possible_moves(self, position, board):
         """
-        :param row: текущий ряд фигуры
-        :param colum: текущая колонка фигуры
+        :param position: текущая позиция фигуры на доске
         :param board: доска
         :return moves: вовращает множество допустимых ходов
         """
@@ -110,18 +109,18 @@ class Pawn(Piece):
         else:
             direction = -1
             start_row = 6
-        new_row = row + direction
-        if board.is_valid_position(new_row, colum) and not board.get_piece(new_row, colum):
-            moves.add((new_row, colum))
-        new_row_2 = row + direction * 2
-        if row == start_row and not board.get_piece(new_row_2, colum):
-            moves.add((new_row_2, colum))
-        colum_left = colum - 1
+        new_row = position.row + direction
+        if board.is_valid_position(new_row, position.colum) and not board.get_piece(new_row, position.colum):
+            moves.add((new_row, position.colum))
+        new_row_2 = position.row + direction * 2
+        if position.row == start_row and not board.get_piece(new_row_2, position.colum):
+            moves.add((new_row_2, position.colum))
+        colum_left = position.colum - 1
         if board.is_valid_position(new_row, colum_left) and board.get_piece(new_row, colum_left):
             target_color = board.get_piece(new_row, colum_left).color
             if target_color != self.color:
                 moves.add((new_row, colum_left))
-        colum_right = colum + 1
+        colum_right = position.colum + 1
         if board.is_valed_position(new_row, colum_right) and board.get_piece(new_row, colum_right):
             target_color = board.get_piece(new_row, colum_right).color
             if target_color != self.color:
@@ -132,7 +131,7 @@ class Rook(Piece):
     def __init__(self, color):
         super().__init__(color, PieceType.ROOK)
 
-    def get_possible_moves(self, row, colum, board):
+    def get_possible_moves(self, position, board):
         """
         :param row: текущий ряд фигуры
         :param colum: текущая колонка фигуры
@@ -143,7 +142,7 @@ class Rook(Piece):
         directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]
         for dr, dc in directions:
             for step in range(8):
-                new_row, new_colum = row + dr, colum + dc * step
+                new_row, new_colum = position.row + dr, position.colum + dc * step
                 if not board.is_valid_position(new_row, new_colum):
                     break
                 target = board.get_piece(new_row, new_colum)
@@ -160,7 +159,7 @@ class Bishop(Piece):
     def __init__(self, color):
         super().__init__(color, PieceType.BISHOP)
 
-    def get_possible_moves(self, row, colum, board):
+    def get_possible_moves(self, position, board):
         """
         :param row: текущий ряд фигуры
         :param colum: текущая колонка фигуры
@@ -171,7 +170,7 @@ class Bishop(Piece):
         directions = [(1, 1), (-1, -1), (-1, 1), (1, -1)]
         for dr, dc in directions:
             for step in range(8):
-                new_row, new_colum = row + dr, colum + dc * step
+                new_row, new_colum = position.row + dr, position.colum + dc * step
                 if not board.is_valid_position(new_row, new_colum):
                     break
                 target = board.get_piece(new_row, new_colum)
@@ -192,7 +191,7 @@ class Knight(Piece):
     def __init__(self, color):
         super().__init__(color, PieceType.KNIGHT)
 
-    def get_possible_moves(self, row, colum, board):
+    def get_possible_moves(self, position, board):
         """
         :param row: текущий ряд фигуры
         :param colum: текущая колонка фигуры
@@ -202,7 +201,7 @@ class Knight(Piece):
         moves = set()
         directions = [(-2, -1), (-2, 1), (-1, -2), (-1, 2), (1, -2),  (1, 2), (2, -1),  (2, 1)]
         for dr, dc in directions:
-            new_row, new_colum = row + dr, colum + dc
+            new_row, new_colum = position.row + dr, position.colum + dc
             if not board.is_valid_position(new_row, new_colum):
                 continue
             target = board.get_piece(new_row, new_colum)
@@ -218,7 +217,7 @@ class Queen(Piece):
     def __init__(self, color):
         super().__init__(color, PieceType.QUEEN)
 
-    def get_possible_moves(self, row, colum, board):
+    def get_possible_moves(self, position, board):
         """
         :param row: текущий ряд фигуры
         :param colum: текущая колонка фигуры
@@ -229,15 +228,15 @@ class Queen(Piece):
         directions = [(1, 1), (-1, -1), (-1, 1), (1, -1), (1, 0), (-1, 0), (0, 1), (0, -1)]
         for dr, dc in directions:
             for step in range(8):
-                new_row, new_colum = row + dr * step, colum + dc * step
-                if not board.is_valid_position(new_row, new_colum):
+                position = position.row + dr * step, position.colum + dc * step
+                if not board.is_valid_position(position):
                     break
-                target = board.get_piece(new_row, new_colum)
+                target = board.get_piece(position)
                 if target is None:
-                    moves.add((new_row, new_colum))
+                    moves.add((position))
                 else:
                     if self.color != target.color:
-                        moves.add((new_row, new_colum))
+                        moves.add((position))
                     break
             return moves
 
@@ -257,15 +256,15 @@ class King(Piece):
         moves = set()
         directions = [(1, 1), (-1, -1), (-1, 1), (1, -1), (1, 0), (-1, 0), (0, 1), (0, -1)]
         for dr, dc in directions:
-            new_row, new_colum = row + dr, colum + dc
-            if not board.is_valid_position(new_row, new_colum):
+            position = row + dr, colum + dc
+            if not board.is_valid_position(position):
                 break
-            target = board.get_piece(new_row, new_colum)
+            target = board.get_piece(position)
             if target is None:
-                moves.add((new_row, new_colum))
+                moves.add((position))
             else:
                 if self.color != target.color:
-                    moves.add((new_row, new_colum))
+                    moves.add((position))
         return moves
 #===========================================
     def check(self, row, colum, board, enemy_color):
