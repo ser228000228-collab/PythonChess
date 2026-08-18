@@ -245,47 +245,44 @@ class King(Piece):
     def __init__(self, color):
         super().__init__(color, PieceType.KING)
 
+    def get_possible_moves(self, from_pos: Position, board: 'Board') -> set[Position]:
+        moves = set()
+        for dr in (-1, 0, 1):
+            for dc in (-1, 0, 1):
+                if dr == 0 and dc == 0:
+                    continue
+                to = from_pos + (dr, dc)
+                if to.is_valid():
+                    target = board.get_piece(to)
+                    if target is None or target.color == self.color:
+                        moves.add((to))
 
-#===========================================
-    def check(self, row, colum, board, enemy_color):
-        mate = 0
-        if enemy_color != self.color:
-            target = board.get_piece.KING(row, colum)
-            print(self.color.KING, target("шах"))
-            if self.color.KING == target:
-                mate += 1
-            print("победили", enemy_color)
-#============================================
-    def plaeer(self, color, row, colum, board):
-        colum = int("введите номер колонки")
-        row = int("введите номер ряда")
 
-#===========================================
 # Рокировка
-if not self.has_moved:
-    # Короткая рокировка (0-0)
-    rook_pos = Position(from_pos.row, 7)
-    rook = board.get_piece(rook_pos)
-    if (rook and rook.type == PieceType.ROOK and rook.color == self.color
-            and not rook.has_moved):
-        # Проверяем, что между королём и ладьёй нет фигур
-        if all(board.get_piece(Position(from_pos.row, c)) is None for c in (5, 6)):
-            # Король не должен быть под шахом, и не должен проходить через битое поле
-            if (not board.is_square_attacked(from_pos, self.color.opposite()) and
-                    not board.is_square_attacked(Position(from_pos.row, 5), self.color.opposite()) and
-                    not board.is_square_attacked(Position(from_pos.row, 6), self.color.opposite())):
-                moves.add(Position(from_pos.row, 6)) # Конечная позиция короля
+        if not self.has_moved:
+            # Короткая рокировка (0-0)
+            rook_pos = Position(from_pos.row, 7)
+            rook = board.get_piece(rook_pos)
+            if (rook and rook.type == PieceType.ROOK and rook.color == self.color
+                    and not rook.has_moved):
+                # Проверяем, что между королём и ладьёй нет фигур
+                if all(board.get_piece(Position(from_pos.row, c)) is None for c in (5, 6)):
+                    # Король не должен быть под шахом, и не должен проходить через битое поле
+                    if (not board.is_square_attacked(from_pos, self.color.opposite()) and
+                            not board.is_square_attacked(Position(from_pos.row, 5), self.color.opposite()) and
+                            not board.is_square_attacked(Position(from_pos.row, 6), self.color.opposite())):
+                        moves.add(Position(from_pos.row, 6)) # Конечная позиция короля
 
-    # Длинная рокировка (0-0-0)
-    rook_pos2 = Position(from_pos.row, 0)
-    rook2 = board.get_piece(rook_pos2)
-    if (rook2 and rook2.type == PieceType.ROOK and rook2.color == self.color
-            and not rook2.has_moved):
-        if all(board.get_piece(Position(from_pos.row, c)) is None for c in (1, 2, 3)):
-            if (not board.is_square_attacked(from_pos, self.color.opposite()) and
-                    not board.is_square_attacked(Position(from_pos.row, 3), self.color.opposite()) and
-                    not board.is_square_attacked(Position(from_pos.row, 2), self.color.opposite())):
-                moves.add(Position(from_pos.row, 2))
+            # Длинная рокировка (0-0-0)
+            rook_pos2 = Position(from_pos.row, 0)
+            rook2 = board.get_piece(rook_pos2)
+            if (rook2 and rook2.type == PieceType.ROOK and rook2.color == self.color
+                    and not rook2.has_moved):
+                if all(board.get_piece(Position(from_pos.row, c)) is None for c in (1, 2, 3)):
+                    if (not board.is_square_attacked(from_pos, self.color.opposite()) and
+                            not board.is_square_attacked(Position(from_pos.row, 3), self.color.opposite()) and
+                            not board.is_square_attacked(Position(from_pos.row, 2), self.color.opposite())):
+                        moves.add(Position(from_pos.row, 2))
 
 
 class Board:
@@ -327,6 +324,140 @@ class Board:
         else:
             self.pieces[position] = piece
 
+    def find_king(self, color: Color) -> Optional[Position]:
+        for pos, piece in self.pieces.items():
+            if piece.type == PieceType.KING and piece.color == color:
+                None
+
+
+    def is_square_attacked(self, position: Position, color: Color) -> bool:
+        for p, piece in self.pieces.items():
+            if piece.color == by.color:
+                if piece.can_move_to(p, pos, self):
+                    return True
+        return False
+
+
+    def woud_leave_king_in_check(self, from_pos: Position, to_pos: Position) -> bool:
+        piece = self.get_pieces(from_pos)
+        if piece is None:
+            return False
+
+
+        captured = self.get_piece(to_pos)
+        self.pieces[to_pos] = piece
+        del self.pieces[from_pos]
+
+        king_pos = self.get_piece(piece.color)
+        in_check = False
+        if king_pos:
+            in_check = self.is_square_attacked(king_pos, piece.color.oposite())
+
+
+        if captured:
+            self.piece[from_pos] = piece
+            self.pieces[to_pos] = captured
+        else:
+            self.pieces[from_pos] = piece
+            self.pieces[to_pos]
+
+        return in_check
+
+    def is_check(self, color: Color) -> bool:
+        king_pos = self.get_piece(color)
+        if king_pos is None:
+            return False
+        return self.is_square_attacked(king_pos, color.opposite())
+
+    def is_checkmate(self, color: Color) -> bool:
+        """Мат: король под шахом и нет легальных ходов."""
+        if not self.is_check(color):
+            return False
+        return not self.has_legal_moves(color)
+
+    def is_stalemate(self, color: Color) -> bool:
+        """Пат: король не под шахом, но нет легальных ходов."""
+        if self.is_check(color):
+            return False
+        return not self.has_legal_moves(color)
+
+    def has_legal_moves(self, color: Color) -> bool:
+        """Есть ли у игрока цвета color хотя бы один легальный ход."""
+        for pos, piece in self.pieces.items():
+            if piece.color == color:
+                for to_pos in piece.get_possible_moves(pos, self):
+                    if not self.would_leave_king_in_check(pos, to_pos):
+                        return True
+        return False
+
+
+    def move_piece(self, from_pos: Position, to_pos: Position) -> bool:
+        """Выполняет ход, если он легален. Возвращает True при успехе."""
+        piece = self.get_piece(from_pos)
+        if piece is None:
+            return False
+
+        # Проверяем, может ли фигура так сходить
+        if not piece.can_move_to(from_pos, to_pos, self):
+            return False
+
+        # Проверяем, не останется ли король под шахом
+        if self.would_leave_king_in_check(from_pos, to_pos):
+            return False
+
+        # Выполняем ход
+        captured = self.get_piece(to_pos)
+        self.pieces[to_pos] = piece
+        del self.pieces[from_pos]
+        piece.has_moved = True
+
+        # Превращение пешки
+        if piece.type == PieceType.PAWN:
+            last_row = 0 if piece.color == Color.WHITE else 7
+            if to_pos.row == last_row:
+                # По умолчанию превращаем в ферзя
+                self.pieces[to_pos] = Queen(piece.color)
+        if piece.type == PieceType.KING:
+            if from_pos == Position(7, 4) and to_pos == Position(7, 6):  # Белая короткая
+                rook = self.get_piece(Position(7, 7))
+                if rook:
+                    self.pieces[Position(7, 5)] = rook
+                    del self.pieces[Position(7, 7)]
+                    rook.has_moved = True
+            elif from_pos == Position(7, 4) and to_pos == Position(7, 2):  # Белая длинная
+                rook = self.get_piece(Position(7, 0))
+                if rook:
+                    self.pieces[Position(7, 3)] = rook
+                    del self.pieces[Position(7, 0)]
+                    rook.has_moved = True
+            elif from_pos == Position(0, 4) and to_pos == Position(0, 6):  # Чёрная короткая
+                rook = self.get_piece(Position(0, 7))
+                if rook:
+                    self.pieces[Position(0, 5)] = rook
+                    del self.pieces[Position(0, 7)]
+                    rook.has_moved = True
+            elif from_pos == Position(0, 4) and to_pos == Position(0, 2):  # Чёрная длинная
+                rook = self.get_piece(Position(0, 0))
+                if rook:
+                    self.pieces[Position(0, 3)] = rook
+                    del self.pieces[Position(0, 0)]
+                    rook.has_moved = True
+
+        return True
+
+    def display(self):
+        print("  a b c d e f g h")
+        for row in range(8):
+            print(f"{8 - row} ", end="")
+            for col in range(8):
+                pos = Position(row, col)
+                piece = self.get_piece(pos)
+                if piece:
+                    print(str(piece), end=" ")
+                else:
+                    print(".git ", end="")
+            print(f"{8 - row}")
+        print("  a b c d e f g h")
 
 
 
