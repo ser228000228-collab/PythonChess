@@ -27,6 +27,9 @@ class Position:
     def __add__(self, other):
         dr, dc = other
         return Position(self.row+dr, self.col+dc)
+    def is_valid(self) -> bool:
+        return 0 <= self.row < 8 and 0 <= self.col < 8
+
 
 class Color(Enum):
     WHITE = "white"
@@ -65,13 +68,13 @@ class Piece:
     #todo подумать как можно реализовать методы get_posible_moves и can_move_to 1 -все возможные перемещения, 2 - на конкретную клетку
     # (какие атрибуты нужно передать функциям)
 
-    @abstractmethod
-    def get_possible_moves(self, row, colum, board):
+    def get_possible_moves(self, position, board):
         pass
 
-    @abstractmethod
-    def can_move_to(self, row_from, colum_from, row_to, colum_to, board):
-        pass
+    def can_move_to(self, position_from, position_to, board):
+        if position_to in self.get_possible_moves(position_from, board):
+            return True
+        return False
 
     def __repr__(self):
         symbols = {
@@ -89,6 +92,7 @@ class Piece:
             (Color.BLACK, PieceType.PAWN): "♟",
         }
         return symbols.get((self.color, self.type), "?")
+
 
 #ToDo попробовать реализовать пешку
 
@@ -133,8 +137,7 @@ class Rook(Piece):
 
     def get_possible_moves(self, position, board):
         """
-        :param row: текущий ряд фигуры
-        :param colum: текущая колонка фигуры
+        :param position: текущая позиция фигуры
         :param board: доска
         :return moves: вовращает множество допустимых ходов
         """
@@ -161,8 +164,7 @@ class Bishop(Piece):
 
     def get_possible_moves(self, position, board):
         """
-        :param row: текущий ряд фигуры
-        :param colum: текущая колонка фигуры
+        :param position: текущая позиция фигуры
         :param board: доска
         :return moves: вовращает множество допустимых ходов
         """
@@ -193,8 +195,7 @@ class Knight(Piece):
 
     def get_possible_moves(self, position, board):
         """
-        :param row: текущий ряд фигуры
-        :param colum: текущая колонка фигуры
+        :param position: текущая позиция фигуры
         :param board: доска
         :return moves: вовращает множество допустимых ходов
         """
@@ -217,10 +218,9 @@ class Queen(Piece):
     def __init__(self, color):
         super().__init__(color, PieceType.QUEEN)
 
-    def get_possible_moves(self, position, board):
+    def get_possible_moves(self, from_position, board):
         """
-        :param row: текущий ряд фигуры
-        :param colum: текущая колонка фигуры
+        :param position: текущая позиция фигуры
         :param board: доска
         return moves: вовращает множество допустимых ходов
         """
@@ -245,27 +245,7 @@ class King(Piece):
     def __init__(self, color):
         super().__init__(color, PieceType.KING)
 
-    def get_possible_moves(self, row, colum, board):
-        """
-        :param row: текущий ряд фигуры
-        :enemy_color: цвет противника
-        :param colum: текущая колонка фигуры
-        :param board: доска
-        :return moves: вовращает множество допустимых ходов
-        """
-        moves = set()
-        directions = [(1, 1), (-1, -1), (-1, 1), (1, -1), (1, 0), (-1, 0), (0, 1), (0, -1)]
-        for dr, dc in directions:
-            position = row + dr, colum + dc
-            if not board.is_valid_position(position):
-                break
-            target = board.get_piece(position)
-            if target is None:
-                moves.add((position))
-            else:
-                if self.color != target.color:
-                    moves.add((position))
-        return moves
+
 #===========================================
     def check(self, row, colum, board, enemy_color):
         mate = 0
@@ -279,6 +259,34 @@ class King(Piece):
     def plaeer(self, color, row, colum, board):
         colum = int("введите номер колонки")
         row = int("введите номер ряда")
+
+#===========================================
+# Рокировка
+if not self.has_moved:
+    # Короткая рокировка (0-0)
+    rook_pos = Position(from_pos.row, 7)
+    rook = board.get_piece(rook_pos)
+    if (rook and rook.type == PieceType.ROOK and rook.color == self.color
+            and not rook.has_moved):
+        # Проверяем, что между королём и ладьёй нет фигур
+        if all(board.get_piece(Position(from_pos.row, c)) is None for c in (5, 6)):
+            # Король не должен быть под шахом, и не должен проходить через битое поле
+            if (not board.is_square_attacked(from_pos, self.color.opposite()) and
+                    not board.is_square_attacked(Position(from_pos.row, 5), self.color.opposite()) and
+                    not board.is_square_attacked(Position(from_pos.row, 6), self.color.opposite())):
+                moves.add(Position(from_pos.row, 6)) # Конечная позиция короля
+
+    # Длинная рокировка (0-0-0)
+    rook_pos2 = Position(from_pos.row, 0)
+    rook2 = board.get_piece(rook_pos2)
+    if (rook2 and rook2.type == PieceType.ROOK and rook2.color == self.color
+            and not rook2.has_moved):
+        if all(board.get_piece(Position(from_pos.row, c)) is None for c in (1, 2, 3)):
+            if (not board.is_square_attacked(from_pos, self.color.opposite()) and
+                    not board.is_square_attacked(Position(from_pos.row, 3), self.color.opposite()) and
+                    not board.is_square_attacked(Position(from_pos.row, 2), self.color.opposite())):
+                moves.add(Position(from_pos.row, 2))
+
 
 class Board:
     def __init__(self):
