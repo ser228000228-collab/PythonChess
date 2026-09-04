@@ -1,7 +1,6 @@
-from abc import ABC, abstractmethod
 from enum import Enum
 from dataclasses import dataclass
-from typing import Dict
+from typing import Optional, Tuple, Dict
 """
 файл доски для шахмат
 размер доски 8 x 8, по горизонтали цифры от 1 до 8, по вертикали буквы от a до h
@@ -228,7 +227,7 @@ class Queen(Piece):
         directions = [(1, 1), (-1, -1), (-1, 1), (1, -1), (1, 0), (-1, 0), (0, 1), (0, -1)]
         for dr, dc in directions:
             for step in range(8):
-                position = position.row + dr * step, position.colum + dc * step
+                position = from_position + dr * step, from_position + dc * step
                 if not board.is_valid_position(position):
                     break
                 target = board.get_piece(position)
@@ -238,7 +237,7 @@ class Queen(Piece):
                     if self.color != target.color:
                         moves.add((position))
                     break
-            return moves
+        return moves
 
 # ==============================================================
 class King(Piece):
@@ -327,13 +326,14 @@ class Board:
     def find_king(self, color: Color) -> Optional[Position]:
         for pos, piece in self.pieces.items():
             if piece.type == PieceType.KING and piece.color == color:
-                None
+                return pos
+        return None
 
 
     def is_square_attacked(self, position: Position, color: Color) -> bool:
         for p, piece in self.pieces.items():
-            if piece.color == by.color:
-                if piece.can_move_to(p, pos, self):
+            if piece.color == color:
+                if piece.can_move_to(p, position, self):
                     return True
         return False
 
@@ -536,13 +536,7 @@ class Game:                                         #создание класс
         print("Игра завершена.")
 
 
-
-
-
-
-
-
-
-
-
-
+#======= точка входа ========
+if __name__ == "__main__":
+    game = Game()
+    game.play()
