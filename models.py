@@ -460,6 +460,84 @@ class Board:
         print("  a b c d e f g h")
 
 
+#========= ИГРА ============
+class Game:                                         #создание класса
+    def __init__(self):
+        self.board = Board()
+        self.current_turn = Color.WHITE
+        self.game_over = False
+        self.winner = None
+        self.move_history = []                      #указываем на прошлые объекты классов
+
+    def parse_move(self, move_str: str) -> Tuple[Position, Position]:     #создаеам новую функцию
+        if len(move_str) != 4:
+            raise ValueError("Неверный формат хода. Используйте, например, 'e2e4'.")            #указываем пользователю на ошибку в ходе
+        col_map = {'a': 0, 'b': 1, 'c': 2, 'd': 3,
+                   'e': 4, 'f': 5, 'g': 6, 'h': 7}                  #перевод колонок в числовые значения
+        from_col = col_map[move_str[0].lower()]
+        from_row = 8 - int(move_str[1])
+        to_col = col_map[move_str[2].lower()]
+        to_row = 8 - int(move_str[3])
+        return Position(from_row, from_col), Position(to_row, to_col)           #возвращаем позицию
+
+    def make_move(self, from_pos: Position, to_pos: Position) -> bool:              #создаем функцию
+        if self.game_over:
+            print("Игра уже окончена.")                #если игра окнчена то ходить нельзя
+            return False
+
+        piece = self.board.get_piece(from_pos)
+        if piece is None:
+            print("На начальной клетке нет фигуры.")
+            return False                                        #проверка на тычек в пустую клетку
+
+        if piece.color != self.current_turn:
+            print(f"Сейчас ход {self.current_turn.value}.")
+            return False                                            #-----------
+
+        if self.board.move_piece(from_pos, to_pos):
+            self.move_history.append((from_pos, to_pos))
+            opponent = self.current_turn.opposite()
+            if self.board.is_checkmate(opponent):
+                self.game_over = True
+                self.winner = self.current_turn
+                print(f"Мат! Победили {self.winner.value}.")            #проверка на пат/мат
+            elif self.board.is_stalemate(opponent):
+                self.game_over = True
+                self.winner = None
+                print("Пат! Ничья.")
+            else:
+                # Переключение хода
+                self.current_turn = opponent
+                if self.board.is_check(opponent):
+                    print(f"{opponent.value} под шахом!")
+            return True
+        else:
+            print("Неверный ход.")
+            return False
+    def play(self):
+        print("Добро пожаловать в шахматы!")
+        print("Вводите ходы в формате 'e2e4' (с буквы на букву).")      #подготовка к старту игры
+        print("Для выхода введите 'quit'.")
+        self.board.display()
+
+        while not self.game_over:
+            move_str = input(f"\nХод {self.current_turn.value} (например, e2e4): ").strip()
+            if move_str.lower() == 'quit':
+                break
+            try:
+                from_pos, to_pos = self.parse_move(move_str)            #превращает текст в движение
+                if self.make_move(from_pos, to_pos):
+                    self.board.display()
+            except ValueError as e:
+                print(f"Ошибка: {e}")
+            except Exception as e:
+                print(f"Неожиданная ошибка: {e}")           #ошибка/окончание игры
+
+        print("Игра завершена.")
+
+
+
+
 
 
 
