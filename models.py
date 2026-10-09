@@ -540,3 +540,25 @@ class Game:                                         #создание класс
 if __name__ == "__main__":
     game = Game()
     game.play()
+
+
+class Game:
+    def __init__(self):
+        self.board = Board()
+        self.current_turn = Color.WHITE
+        self.game_over = False
+        self.winner = None
+        self.move_history = []
+
+    def parse_move(self, move_str: str) -> Tuple[Position, Position]:
+        """Преобразует строку типа 'e2e4' в пару Position."""
+        if len(move_str) != 4:
+            raise ValueError("Неверный формат хода. Используйте, например, 'e2e4'.")
+        col_map = {'a': 0, 'b': 1, 'c': 2, 'd': 3,
+                   'e': 4, 'f': 5, 'g': 6, 'h': 7}
+        from_col = col_map[move_str[0].lower()]
+        from_row = 8 - int(move_str[1])
+        to_col = col_map[move_str[2].lower()]
+        to_row = 8 - int(move_str[3])
+        return Position(from_row, from_col), Position(to_row, to_col)
+
